@@ -1,0 +1,75 @@
+openapi: 3.0.3
+info:
+  title: User Missing Hours API
+  version: 1.0.0
+paths:
+  /calculate-missing-hours:
+    post:
+      summary: Calculate missing hours for a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: object
+                  properties:
+                    UserName:
+                      type: string
+                      example: JohnDoe
+                    WeekNumber:
+                      type: integer
+                      example: 42
+                  required:
+                    - UserName
+                    - WeekNumber
+                - type: object
+                  properties:
+                    UserName:
+                      type: string
+                      example: JohnDoe
+                    MonthName:
+                      type: string
+                      example: October
+                  required:
+                    - UserName
+                    - MonthName
+      responses:
+        '200':
+          description: Successful response with calculated missing hours
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    properties:
+                      UserName:
+                        type: string
+                        example: JohnDoe
+                      WeekNumber:
+                        type: integer
+                        example: 42
+                      MissingHours:
+                        type: integer
+                        example: 5
+                  - type: object
+                    properties:
+                      UserName:
+                        type: string
+                        example: JohnDoe
+                      MonthName:
+                        type: string
+                        example: October
+                      MissingHours:
+                        type: integer
+                        example: 5
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid input

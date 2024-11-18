@@ -1,0 +1,66 @@
+openapi: 3.0.3
+info:
+  title: User Info API
+  version: 1.0.0
+paths:
+  /send-email:
+    post:
+      summary: Sends an email to a user
+      description: Accepts a OutlookEmail or UserNameInOutlook and sends an email to that user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              oneOf:
+                - properties:
+                    OutlookEmail:
+                      type: string
+                      format: email
+                      description: The user's email in Outlook.
+                  required:
+                    - OutlookEmail
+                - properties:
+                    UserNameInOutlook:
+                      type: string
+                      description: The user's name in Outlook.
+                  required:
+                    - UserNameInOutlook
+      responses:
+        '200':
+          description: Email information generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  RecieptEmail:
+                    type: string
+                    format: email
+                    description: The email address of the recipient.
+                    example: "john.doe@example.com"
+                  MailTitle:
+                    type: string
+                    description: The title of the email.
+                    example: "Email to JohnDoe"
+                  MailBody:
+                    type: string
+                    description: The body of the email.
+                    example: |
+                      Hello JohnDoe,
+
+                      This is a test email.
+
+                      Regards,
+                      FakeAppSendMail
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid request body."
