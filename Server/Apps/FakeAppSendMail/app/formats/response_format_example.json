@@ -1,0 +1,5 @@
+{
+  "RecieptEmail": "john.doe@example.com",
+  "MailTitle": "Email to JohnDoe",
+  "MailBody": "Hello JohnDoe,\n\nThis is a test email.\n\nRegards,\nFakeAppSendMail"
+}

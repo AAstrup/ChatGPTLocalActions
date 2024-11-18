@@ -48,10 +48,12 @@ async function setupEndpoints() {
 
 // Function to handle incoming requests
 function handleRequest(req, res, appPath) {
-  const requestsDir = path.join(appPath, 'requests');
-  const responsesDir = path.join(appPath, 'responses');
-  const errorsDir = path.join(appPath, 'errors');
   const appExeDir = path.join(appPath, 'app');
+
+  // Adjusted paths to reflect that requests, responses, and errors are inside the app directory
+  const requestsDir = path.join(appExeDir, 'requests');
+  const responsesDir = path.join(appExeDir, 'responses');
+  const errorsDir = path.join(appExeDir, 'errors');
 
   // Ensure the directories exist
   [requestsDir, responsesDir, errorsDir].forEach((dir) => {
@@ -76,12 +78,18 @@ function handleRequest(req, res, appPath) {
 
       const exePath = path.join(appExeDir, exeFile);
 
+      // Log that the .exe is about to be executed
+      console.log(`Executing ${exePath}`);
+
       // Execute the .exe file
       execFile(exePath, [], (error) => {
         if (error) {
           console.error('Error executing .exe file:', error);
           return res.status(500).send('Internal Server Error');
         }
+
+        // Log that the .exe execution has started
+        console.log(`.exe execution started for ${exePath}`);
 
         // Wait for the request file to be removed
         const checkInterval = setInterval(() => {
