@@ -194,11 +194,13 @@ function stripSwagger(swagger) {
       newPaths[newPathKey] = swagger.paths[pathKey];
       let pathItem = newPaths[newPathKey];
       for (let method in pathItem) {
-        if (pathItem[method]) {
-          delete pathItem[method]['requestBody'];
-          delete pathItem[method]['responses'];
-          pathItem[method]['summary'] =
-            'Call this swagger to get endpoint details. ' + (pathItem[method]['summary'] || '');
+        const newMethodd = "get";
+        pathItem[newMethodd] = pathItem[method];
+        delete pathItem[method];
+        if (pathItem[newMethodd]) {
+          delete pathItem[newMethodd]['requestBody'];
+          delete pathItem[newMethodd]['responses'];
+          pathItem[newMethodd]['description'] = "Call the swagger endpoint to see the expected payload and api";
         }
       }
     }
