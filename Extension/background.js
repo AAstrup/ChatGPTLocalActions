@@ -1,18 +1,12 @@
 // background.js
 
-chrome.webNavigation.onCompleted.addListener((details) => {
-    debugger
-    console.log("ASDASD")
-  });
-  
-
 console.log('Background script loaded');
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   console.log('Received message in background script:', request);
 
   if (request.action === 'fetchAPI') {
-    fetch(request.url, {
+    fetch("http://localhost:8000"+request.url, {
       method: request.method || 'GET',
       headers: {
         'Content-Type': 'application/json',

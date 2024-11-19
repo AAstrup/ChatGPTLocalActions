@@ -30,7 +30,7 @@ const addRunActionButtons = () => {
       console.log('Code block content:', codeText);
 
       const jsonResponse = extractJSON(codeText);
-      if (jsonResponse && jsonResponse.url && jsonResponse.body !== undefined) {
+      if (jsonResponse && jsonResponse.url) {
         console.log('Valid JSON response found:', jsonResponse);
         handleAPIRequest(jsonResponse);
       } else {
@@ -84,7 +84,7 @@ const handleAPIRequest = (jsonResponse) => {
     {
       action: 'fetchAPI',
       url: jsonResponse.url,
-      method: Object.keys(jsonResponse.body).length ? 'POST' : 'GET',
+      method: jsonResponse.body ? 'POST' : 'GET',
       body: jsonResponse.body,
     },
     (response) => {
