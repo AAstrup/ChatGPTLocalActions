@@ -95,14 +95,17 @@ function handleRequest(req, res, appPath) {
         const checkInterval = setInterval(() => {
           fs.access(requestFilePath)
             .then(() => {
+              console.log(`Pending ${exePath} at ${requestFilePath}`);
               // File still exists
             })
             .catch(() => {
+              console.log(`Completed ${exePath} at ${requestFilePath}`);
+              
               // File has been removed
               clearInterval(checkInterval);
 
               // Read response and error files
-              readResponseAndErrors(responsesDir, errorsDir, res);
+              readResponseAndErrors(responsesDir, errorsDir, res)
             });
         }, 500); // Check every 500ms
       });
@@ -113,43 +116,60 @@ function handleRequest(req, res, appPath) {
     });
 }
 
+// Function to clear files in a directory
+async function clearFolder(directory) {
+  try {
+    const files = await fs.readdir(directory);
+    const fileDeletionPromises = files.map((file) => fs.unlink(path.join(directory, file)));
+    await Promise.all(fileDeletionPromises);
+  } catch (err) {
+    console.error(`Error clearing folder ${directory}:`, err);
+  }
+}
+
 // Function to read response and error files and send them back to the client
-function readResponseAndErrors(responsesDir, errorsDir, res) {
+async function readResponseAndErrors(responsesDir, errorsDir, res) {
   let combinedData = '';
 
-  // Read response files
-  fs.readdir(responsesDir)
-    .then((responseFiles) => {
-      responseFiles = responseFiles.filter((file) => file.endsWith('.json'));
-      let pendingResponses = responseFiles.length;
+  try {
+    // Read response files
+    const responseFiles = (await fs.readdir(responsesDir)).filter((file) => file.endsWith('.json'));
 
-      if (pendingResponses === 0) {
-        // No response files, proceed to read error files
-        readErrorFiles(errorsDir, combinedData, res);
-      } else {
-        let responsePromises = responseFiles.map((file) => {
+    if (responseFiles.length > 0) {
+      await Promise.all(
+        responseFiles.map(async (file) => {
           const filePath = path.join(responsesDir, file);
-          return fs.readFile(filePath, 'utf8').then((data) => {
-            combinedData += data;
-          });
-        });
+          const data = await fs.readFile(filePath, 'utf8');
+          combinedData += data;
+        })
+      );
+    }
 
-        Promise.all(responsePromises)
-          .then(() => {
-            // Proceed to read error files
-            readErrorFiles(errorsDir, combinedData, res);
-          })
-          .catch((err) => {
-            console.error('Error reading response files:', err);
-            res.status(500).send('Internal Server Error');
-          });
-      }
-    })
-    .catch((err) => {
-      console.error('Error reading responses directory:', err);
-      res.status(500).send('Internal Server Error');
-    });
+    // Read error files
+    const errorFiles = (await fs.readdir(errorsDir)).filter((file) => file.endsWith('.json'));
+
+    if (errorFiles.length > 0) {
+      await Promise.all(
+        errorFiles.map(async (file) => {
+          const filePath = path.join(errorsDir, file);
+          const data = await fs.readFile(filePath, 'utf8');
+          combinedData += data;
+        })
+      );
+    }
+
+    // Clear the folders after processing
+    await clearFolder(responsesDir);
+    await clearFolder(errorsDir);
+
+    // Send the combined data
+    res.send(combinedData);
+  } catch (err) {
+    console.error('Error reading response or error files:', err);
+    res.status(500).send('Internal Server Error');
+  }
 }
+
 
 // Function to read error files
 function readErrorFiles(errorsDir, combinedData, res) {
