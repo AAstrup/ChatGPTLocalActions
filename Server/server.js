@@ -185,28 +185,30 @@ function readErrorFiles(errorsDir, combinedData, res) {
     });
 }
 
-// Function to remove 'requestBody' and 'responses' from paths and add /swagger in front
+// Function to remove 'requestBody' and 'responses' from paths and adjust paths
 function stripSwagger(swagger) {
   if (swagger.paths) {
+    const newPaths = {};
     for (let pathKey in swagger.paths) {
       const newPathKey = `/swagger${pathKey}`;
-      swagger.paths[newPathKey] = swagger.paths[pathKey]
-      delete swagger.paths[pathKey];
-      let pathItem = swagger.paths[newPathKey];
+      newPaths[newPathKey] = swagger.paths[pathKey];
+      let pathItem = newPaths[newPathKey];
       for (let method in pathItem) {
         if (pathItem[method]) {
           delete pathItem[method]['requestBody'];
           delete pathItem[method]['responses'];
-          pathItem[method]['summary'] = "Call this swagger to get endpoint details. " + pathItem[method]['summary'];
+          pathItem[method]['summary'] =
+            'Call this swagger to get endpoint details. ' + (pathItem[method]['summary'] || '');
         }
       }
     }
+    swagger.paths = newPaths;
   }
   return swagger;
 }
 
 // Endpoint to serve the concatenated swagger.json without 'requestBody' and 'responses'
-app.get('/swagger.json', async (req, res) => {
+app.get('/swagger', async (req, res) => {
   try {
     const appFolders = await fs.readdir(appsDir);
 
@@ -217,6 +219,7 @@ app.get('/swagger.json', async (req, res) => {
         try {
           const data = await fs.readFile(swaggerPath, 'utf8');
           const swaggerJson = yaml.load(data);
+
           const strippedSwagger = stripSwagger(swaggerJson);
           return strippedSwagger;
         } catch (e) {
