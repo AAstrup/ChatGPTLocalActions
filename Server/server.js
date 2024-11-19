@@ -185,15 +185,19 @@ function readErrorFiles(errorsDir, combinedData, res) {
     });
 }
 
-// Function to remove 'requestBody' and 'responses' from paths
+// Function to remove 'requestBody' and 'responses' from paths and add /swagger in front
 function stripSwagger(swagger) {
   if (swagger.paths) {
     for (let pathKey in swagger.paths) {
-      let pathItem = swagger.paths[pathKey];
+      const newPathKey = `/swagger${pathKey}`;
+      swagger.paths[newPathKey] = swagger.paths[pathKey]
+      delete swagger.paths[pathKey];
+      let pathItem = swagger.paths[newPathKey];
       for (let method in pathItem) {
         if (pathItem[method]) {
           delete pathItem[method]['requestBody'];
           delete pathItem[method]['responses'];
+          pathItem[method]['summary'] = "Call this swagger to get endpoint details. " + pathItem[method]['summary'];
         }
       }
     }
@@ -227,7 +231,7 @@ app.get('/swagger.json', async (req, res) => {
 
     // Concatenate all swagger files into one
     const combinedSwagger = {
-      openapi: '3.1.0',
+      openapi: '3.0.3',
       paths: {},
       components: {},
     };
