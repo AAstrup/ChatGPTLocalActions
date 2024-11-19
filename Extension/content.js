@@ -102,20 +102,27 @@ const handleAPIRequest = (jsonResponse) => {
   );
 };
 
-// Function to insert a message into the chat input
+// Function to insert a message into the contenteditable div and send it
 const insertMessage = (message) => {
-  const textarea = document.querySelector('textarea');
-  if (textarea) {
-    textarea.value = message;
-    textarea.dispatchEvent(new Event('input', { bubbles: true }));
-    const sendButton = textarea.parentElement.querySelector('button');
-    if (sendButton) {
-      sendButton.click();
-    } else {
-      console.error('Send button not found');
-    }
+  const contentEditableDiv = document.querySelector('div[contenteditable="true"]');
+  
+  if (contentEditableDiv) {
+    // Insert the message into the contenteditable div
+    contentEditableDiv.innerHTML = `<p>${message}</p>`;
+    const inputEvent = new Event('input', { bubbles: true });
+    contentEditableDiv.dispatchEvent(inputEvent);
+
+    // Wait a frame to ensure UI updates before looking for the send button
+    setTimeout(() => {
+      const sendButton = document.querySelector('button[data-testid="send-button"]');
+      if (sendButton) {
+        sendButton.click();
+      } else {
+        console.error('Send button not found');
+      }
+    }, 100); // Wait 100ms for UI reload
   } else {
-    console.error('Textarea not found');
+    console.error('Contenteditable div not found');
   }
 };
 
