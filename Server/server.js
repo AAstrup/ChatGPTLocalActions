@@ -46,75 +46,70 @@ async function setupEndpoints() {
   }
 }
 
-// Function to handle incoming requests
-function handleRequest(req, res, appPath) {
-  const appExeDir = path.join(appPath, 'app');
 
-  // Adjusted paths to reflect that requests, responses, and errors are inside the app directory
-  const requestsDir = path.join(appExeDir, 'requests');
-  const responsesDir = path.join(appExeDir, 'responses');
-  const errorsDir = path.join(appExeDir, 'errors');
+async function handleRequest(req, res, appPath) {
+  try {
+    const appExeDir = path.join(appPath, 'app');
+    const requestsDir = path.join(appExeDir, 'requests');
+    const responsesDir = path.join(appExeDir, 'responses');
+    const errorsDir = path.join(appExeDir, 'errors');
 
-  // Ensure the directories exist
-  [requestsDir, responsesDir, errorsDir].forEach((dir) => {
-    if (!require('fs').existsSync(dir)) require('fs').mkdirSync(dir);
-  });
+    // Ensure directories exist
+    await Promise.all([requestsDir, responsesDir, errorsDir].map(async (dir) => {
+      try {
+        await fs.access(dir);
+      } catch {
+        await fs.mkdir(dir, { recursive: true });
+      }
+    }));
 
-  // Save the request body as a JSON file
-  const requestFileName = `${Date.now()}.json`;
-  const requestFilePath = path.join(requestsDir, requestFileName);
+    // Write request file
+    const requestFileName = `${Date.now()}.json`;
+    const requestFilePath = path.join(requestsDir, requestFileName);
+    await fs.writeFile(requestFilePath, JSON.stringify(req.body));
 
-  fs.writeFile(requestFilePath, JSON.stringify(req.body))
-    .then(() => {
-      // Find and execute the .exe file
-      return fs.readdir(appExeDir);
-    })
-    .then((files) => {
-      const exeFile = files.find((file) => file.endsWith('.exe'));
-      if (!exeFile) {
-        console.error('No .exe file found in app directory');
-        return res.status(500).send('Internal Server Error');
+    // Find .exe file
+    const files = await fs.readdir(appExeDir);
+    const exeFile = files.find((file) => file.endsWith('.exe'));
+    if (!exeFile) throw new Error('No .exe file found');
+
+    const exePath = path.join(appExeDir, exeFile);
+
+    console.log('Executing .exe at:', exePath);
+    console.log('With working directory:', appExeDir);
+
+    // Execute .exe with correct working directory
+    const exeProcess = execFile(exePath, [], { cwd: appExeDir }, (error, stdout, stderr) => {
+      if (error) {
+        console.error('Error executing .exe:', error);
+        console.error('stderr:', stderr);
+        res.status(500).send('Internal Server Error executing .exe');
+        return;
       }
 
-      const exePath = path.join(appExeDir, exeFile);
-
-      // Log that the .exe is about to be executed
-      console.log(`Executing ${exePath}`);
-
-      // Execute the .exe file
-      execFile(exePath, [], (error) => {
-        if (error) {
-          console.error('Error executing .exe file:', error);
-          return res.status(500).send('Internal Server Error');
-        }
-
-        // Log that the .exe execution has started
-        console.log(`.exe execution started for ${exePath}`);
-
-        // Wait for the request file to be removed
-        const checkInterval = setInterval(() => {
-          fs.access(requestFilePath)
-            .then(() => {
-              console.log(`Pending ${exePath} at ${requestFilePath}`);
-              // File still exists
-            })
-            .catch(() => {
-              console.log(`Completed ${exePath} at ${requestFilePath}`);
-              
-              // File has been removed
-              clearInterval(checkInterval);
-
-              // Read response and error files
-              readResponseAndErrors(responsesDir, errorsDir, res)
-            });
-        }, 500); // Check every 500ms
-      });
-    })
-    .catch((err) => {
-      console.error('Error processing request:', err);
-      return res.status(500).send('Internal Server Error');
+      console.log('stdout:', stdout);
     });
+
+    // Wait for request file to be deleted
+    const startTime = Date.now();
+    while (true) {
+      try {
+        await fs.access(requestFilePath);
+      } catch {
+        break; // File deleted
+      }
+      if (Date.now() - startTime > 10000) throw new Error('Timeout waiting for file deletion');
+      await new Promise((resolve) => setTimeout(resolve, 500)); // Wait 500ms
+    }
+
+    // Handle response/error files
+    await readResponseAndErrors(responsesDir, errorsDir, res);
+  } catch (err) {
+    console.error('Error:', err);
+    res.status(500).send('Internal Server Error');
+  }
 }
+
 
 // Function to clear files in a directory
 async function clearFolder(directory) {
