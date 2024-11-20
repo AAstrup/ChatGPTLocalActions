@@ -12,12 +12,12 @@ const createToggleButton = () => {
   toggleContainer.style.top = '10px';
   toggleContainer.style.right = '10px';
   toggleContainer.style.zIndex = '9999';
-  toggleContainer.style.padding = '5px';
-  toggleContainer.style.backgroundColor = '#fff';
-  toggleContainer.style.border = '1px solid #ccc';
-  toggleContainer.style.borderRadius = '5px';
+  toggleContainer.style.padding = '10px';
+  toggleContainer.style.backgroundColor = '#424242';
+  toggleContainer.style.border = 'none';
   toggleContainer.style.display = 'flex';
   toggleContainer.style.alignItems = 'center';
+  toggleContainer.style.borderRadius = '5px';
 
   // Create the checkbox
   const toggleCheckbox = document.createElement('input');
