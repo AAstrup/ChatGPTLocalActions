@@ -4,15 +4,38 @@ const cors = require('cors');
 const fs = require('fs').promises; // Use Promise-based fs functions
 const path = require('path');
 const { execFile } = require('child_process');
-const yaml = require('js-yaml');
+require('dotenv').config(); // To load environment variables from a .env file
 
 const app = express();
 app.use(cors()); // Enable CORS for all routes
 app.use(express.json()); // Parse JSON bodies
 
+// Middleware for Bearer Authentication
+function bearerAuthMiddleware(req, res, next) {
+  const authHeader = req.header('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Authorization header missing or malformed' });
+  }
+
+  const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+  if (token !== process.env.API_KEY) {
+    return res.status(403).json({ error: 'Invalid API token' });
+  }
+
+  next();
+}
+
+// Apply the middleware to all routes except /swagger endpoints
+app.use((req, res, next) => {
+  if (req.path.startsWith('/swagger')) {
+    return next();
+  }
+  bearerAuthMiddleware(req, res, next);
+});
+
 const appsDir = path.join(__dirname, 'Apps');
 
-// Function to dynamically set up endpoints based on swagger.yaml files
+// Function to dynamically set up endpoints based on swagger.json files
 async function setupEndpoints() {
   try {
     const appFolders = await fs.readdir(appsDir);
@@ -20,11 +43,11 @@ async function setupEndpoints() {
     await Promise.all(
       appFolders.map(async (folder) => {
         const appPath = path.join(appsDir, folder);
-        const swaggerPath = path.join(appPath, 'swagger.yaml');
+        const swaggerPath = path.join(appPath, 'swagger.json');
 
         try {
           const data = await fs.readFile(swaggerPath, 'utf8');
-          const swagger = yaml.load(data);
+          const swagger = JSON.parse(data);
           const paths = swagger.paths;
 
           for (let endpoint in paths) {
@@ -37,7 +60,7 @@ async function setupEndpoints() {
             }
           }
         } catch (e) {
-          console.error(`Error processing swagger.yaml in ${folder}:`, e);
+          console.error(`Error processing swagger.json in ${folder}:`, e);
         }
       })
     );
@@ -45,7 +68,6 @@ async function setupEndpoints() {
     console.error('Error reading Apps directory:', err);
   }
 }
-
 
 async function handleRequest(req, res, appPath) {
   try {
@@ -79,7 +101,7 @@ async function handleRequest(req, res, appPath) {
     console.log('With working directory:', appExeDir);
 
     // Execute .exe with correct working directory
-    const exeProcess = execFile(exePath, [], { cwd: appExeDir }, (error, stdout, stderr) => {
+    execFile(exePath, [], { cwd: appExeDir }, (error, stdout, stderr) => {
       if (error) {
         console.error('Error executing .exe:', error);
         console.error('stderr:', stderr);
@@ -109,7 +131,6 @@ async function handleRequest(req, res, appPath) {
     res.status(500).send('Internal Server Error');
   }
 }
-
 
 // Function to clear files in a directory
 async function clearFolder(directory) {
@@ -165,82 +186,21 @@ async function readResponseAndErrors(responsesDir, errorsDir, res) {
   }
 }
 
-
-// Function to read error files
-function readErrorFiles(errorsDir, combinedData, res) {
-  fs.readdir(errorsDir)
-    .then((errorFiles) => {
-      errorFiles = errorFiles.filter((file) => file.endsWith('.json'));
-
-      if (errorFiles.length === 0) {
-        // No error files, send the combined data
-        res.send(combinedData);
-      } else {
-        let errorPromises = errorFiles.map((file) => {
-          const filePath = path.join(errorsDir, file);
-          return fs.readFile(filePath, 'utf8').then((data) => {
-            combinedData += data;
-          });
-        });
-
-        Promise.all(errorPromises)
-          .then(() => {
-            // Send the combined data
-            res.send(combinedData);
-          })
-          .catch((err) => {
-            console.error('Error reading error files:', err);
-            res.status(500).send('Internal Server Error');
-          });
-      }
-    })
-    .catch((err) => {
-      console.error('Error reading errors directory:', err);
-      res.status(500).send('Internal Server Error');
-    });
-}
-
-// Function to remove 'requestBody' and 'responses' from paths and adjust paths
-function stripSwagger(swagger) {
-  if (swagger.paths) {
-    const newPaths = {};
-    for (let pathKey in swagger.paths) {
-      const newPathKey = `/swagger${pathKey}`;
-      newPaths[newPathKey] = swagger.paths[pathKey];
-      let pathItem = newPaths[newPathKey];
-      for (let method in pathItem) {
-        const newMethodd = "get";
-        pathItem[newMethodd] = pathItem[method];
-        delete pathItem[method];
-        if (pathItem[newMethodd]) {
-          delete pathItem[newMethodd]['requestBody'];
-          delete pathItem[newMethodd]['responses'];
-          pathItem[newMethodd]['description'] = "Call the swagger endpoint to see the expected payload and api";
-        }
-      }
-    }
-    swagger.paths = newPaths;
-  }
-  return swagger;
-}
-
-// Endpoint to serve the concatenated swagger.json without 'requestBody' and 'responses'
+// Endpoint to serve the concatenated swagger.json with the "servers" array
 app.get('/swagger', async (req, res) => {
   try {
     const appFolders = await fs.readdir(appsDir);
 
     let swaggers = await Promise.all(
       appFolders.map(async (folder) => {
-        const swaggerPath = path.join(appsDir, folder, 'swagger.yaml');
+        const swaggerPath = path.join(appsDir, folder, 'swagger.json');
 
         try {
           const data = await fs.readFile(swaggerPath, 'utf8');
-          const swaggerJson = yaml.load(data);
-
-          const strippedSwagger = stripSwagger(swaggerJson);
-          return strippedSwagger;
+          const swaggerJson = JSON.parse(data);
+          return swaggerJson;
         } catch (e) {
-          console.error(`Error processing swagger.yaml in ${folder}:`, e);
+          console.error(`Error processing swagger.json in ${folder}:`, e);
           return null;
         }
       })
@@ -249,16 +209,46 @@ app.get('/swagger', async (req, res) => {
     // Filter out null values
     swaggers = swaggers.filter((swagger) => swagger !== null);
 
-    // Concatenate all swagger files into one
+    // Initialize the combined Swagger object with the necessary structure
     const combinedSwagger = {
-      openapi: '3.0.3',
+      openapi: '3.1.0',
+      info: {
+        "title": "User specific APIs",
+        "version": "1.0.0"
+      },
+      servers: [
+        {
+          url: `https://${req.get('host')}`,
+          description: 'Server',
+        },
+      ],
       paths: {},
-      components: {},
+      components: {
+        schemas: {},
+        responses: {},
+        parameters: {},
+        examples: {},
+        requestBodies: {},
+        headers: {},
+        securitySchemes: {},
+        links: {},
+        callbacks: {},
+      },
     };
 
     swaggers.forEach((swagger) => {
+      // Merge paths
       Object.assign(combinedSwagger.paths, swagger.paths);
-      Object.assign(combinedSwagger.components, swagger.components);
+
+      // Merge components sub-sections individually
+      if (swagger.components) {
+        for (const [componentKey, componentValue] of Object.entries(swagger.components)) {
+          if (!combinedSwagger.components[componentKey]) {
+            combinedSwagger.components[componentKey] = {};
+          }
+          Object.assign(combinedSwagger.components[componentKey], componentValue);
+        }
+      }
     });
 
     res.json(combinedSwagger);
@@ -271,14 +261,23 @@ app.get('/swagger', async (req, res) => {
 // Endpoint to serve the full swagger.json for a specific app
 app.get('/swagger/:appName', async (req, res) => {
   const appName = req.params.appName;
-  const swaggerPath = path.join(appsDir, appName, 'swagger.yaml');
+  const swaggerPath = path.join(appsDir, appName, 'swagger.json');
 
   try {
     const data = await fs.readFile(swaggerPath, 'utf8');
-    const swaggerJson = yaml.load(data);
+    const swaggerJson = JSON.parse(data);
+
+    // Add the "servers" array to the individual swagger.json
+    swaggerJson.servers = [
+      {
+        url: `https://${req.get('host')}`,
+        description: 'Server',
+      },
+    ];
+
     res.json(swaggerJson);
   } catch (err) {
-    console.error(`Error reading swagger.yaml for app ${appName}:`, err);
+    console.error(`Error reading swagger.json for app ${appName}:`, err);
     res.status(404).send('App not found');
   }
 });
