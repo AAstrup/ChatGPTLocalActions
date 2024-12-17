@@ -1,6 +1,8 @@
-﻿namespace MissingWorklogs
+﻿using Template.Logic;
+
+namespace Template
 {
-    public static class BusinessLogic
+    public static class Processor
     {
         public static Response ProcessRequest(Request request)
         {

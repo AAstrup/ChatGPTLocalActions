@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
+using MissingWorklogs;
 
-namespace MissingWorklogs
+namespace Template.Logic
 {
     class Program
     {
@@ -27,7 +28,7 @@ namespace MissingWorklogs
                     Request request = JsonSerializer.Deserialize<Request>(content);
 
                     // Process request
-                    Response response = BusinessLogic.ProcessRequest(request);
+                    Response response = Processor.ProcessRequest(request);
 
                     // Write response
                     string responseContent = JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true });
