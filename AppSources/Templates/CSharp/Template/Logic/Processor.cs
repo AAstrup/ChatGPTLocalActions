@@ -1,6 +1,4 @@
-﻿using Template.Logic;
-
-namespace Template
+﻿namespace Template.Logic
 {
     public static class Processor
     {

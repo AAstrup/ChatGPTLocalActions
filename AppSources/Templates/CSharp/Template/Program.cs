@@ -1,7 +1,8 @@
 ﻿using System.Text.Json;
 using MissingWorklogs;
+using Template.Logic;
 
-namespace Template.Logic
+namespace Template
 {
     class Program
     {
