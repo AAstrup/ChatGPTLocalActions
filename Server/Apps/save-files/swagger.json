@@ -1,0 +1,114 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+      "title": "File Processor API",
+      "version": "1.0.0"
+    },
+    "paths": {
+      "/save-files": {
+        "post": {
+          "operationId": "saveFiles",
+          "summary": "Processes file saving requests",
+          "description": "Accepts an array of files with paths and contents and saves them to the specified locations.",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "Files": {
+                      "type": "array",
+                      "description": "List of files to save.",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "Path": {
+                            "type": "string",
+                            "description": "The file system path where the content will be saved.",
+                            "example": "C:/data/output.txt"
+                          },
+                          "Content": {
+                            "type": "string",
+                            "description": "The content to be saved in the file.",
+                            "example": "Sample file content."
+                          }
+                        },
+                        "required": ["Path", "Content"]
+                      }
+                    }
+                  },
+                  "required": ["Files"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Files processed successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "Success": {
+                        "type": "boolean",
+                        "description": "Indicates whether the files were successfully saved.",
+                        "example": true
+                      },
+                      "SavedFiles": {
+                        "type": "array",
+                        "description": "List of file paths that were successfully saved.",
+                        "items": {
+                          "type": "string",
+                          "example": "C:/data/output.txt"
+                        }
+                      },
+                      "Message": {
+                        "type": "string",
+                        "description": "Additional information about the processing result.",
+                        "example": "Files saved successfully."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Invalid input data",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error": {
+                        "type": "string",
+                        "example": "Invalid file data: Path or Content is missing."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal server error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error": {
+                        "type": "string",
+                        "example": "An error occurred while processing the files."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  

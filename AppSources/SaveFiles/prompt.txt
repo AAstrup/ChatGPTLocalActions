@@ -1,0 +1,3 @@
+This a template for a C# project that given a request object returns a response object in the Processor file.
+Implement the Processor file to do XXXXXXXXXXXXXXXXXXXXXXXXxxxx.
+Adjust the request and response classes to match your use case.
