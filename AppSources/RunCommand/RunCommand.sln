@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35312.102
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FakeAppSendMail", "FakeAppSendMail\FakeAppSendMail.csproj", "{3252E645-2749-4F71-B4A4-EAF4E2226F41}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RunCommand", "RunCommand\RunCommand.csproj", "{F8133336-E03D-4BF8-ABD7-CC61CE4C4560}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{3252E645-2749-4F71-B4A4-EAF4E2226F41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3252E645-2749-4F71-B4A4-EAF4E2226F41}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3252E645-2749-4F71-B4A4-EAF4E2226F41}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3252E645-2749-4F71-B4A4-EAF4E2226F41}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8133336-E03D-4BF8-ABD7-CC61CE4C4560}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8133336-E03D-4BF8-ABD7-CC61CE4C4560}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8133336-E03D-4BF8-ABD7-CC61CE4C4560}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8133336-E03D-4BF8-ABD7-CC61CE4C4560}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {D016C032-F0CF-43A1-8704-D29557003402}
+		SolutionGuid = {71A52CDE-42AF-41BE-BBE8-7BEBC160BF1D}
 	EndGlobalSection
 EndGlobal

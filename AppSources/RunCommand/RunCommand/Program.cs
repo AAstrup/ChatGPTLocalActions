@@ -1,11 +1,11 @@
 ﻿using System.Text.Json;
-using Template.Logic;
+using RunCommand.Logic;
 
-namespace Template
+namespace RunCommand
 {
     class Program
     {
-        static void Main()
+        static async Task Main()
         {
             string requestPath = Environment.GetEnvironmentVariable("APP_REQUESTS_PATH") ?? "requests";
             string responsePath = Environment.GetEnvironmentVariable("APP_RESPONSES_PATH") ?? "responses";
@@ -32,7 +32,7 @@ namespace Template
                     Request request = JsonSerializer.Deserialize<Request>(content, options);
 
                     // Process request
-                    Response response = Processor.ProcessRequest(request);
+                    Response response = await Processor.ProcessRequest(request);
 
                     // Write response
                     string responseContent = JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true });
@@ -47,6 +47,7 @@ namespace Template
                     // Write error
                     string errorFileName = Path.Combine(errorPath, $"error_{Path.GetFileName(file)}");
                     File.WriteAllText(errorFileName, ex.Message);
+                    Console.WriteLine("ERROR OCCURED");
                 }
             }
         }

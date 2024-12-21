@@ -1,0 +1,81 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Processor API",
+    "version": "1.0.0",
+    "description": "API for running a terminal command in a specified directory."
+  },
+  "paths": {
+    "/run-terminal-command": {
+      "post": {
+        "summary": "Run a terminal command",
+        "description": "Executes a terminal command in the specified directory and returns the output. If the command expects user input you must use flags like --typescript or -t to prevent the command from waiting for input.",
+        "operationId": "processRequest",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Request"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Request": {
+        "type": "object",
+        "properties": {
+          "directory": {
+            "type": "string",
+            "description": "The directory in which the command will be executed.",
+            "example": "C:\\Projects\\MyApp"
+          },
+          "command": {
+            "type": "string",
+            "description": "The terminal command to execute.",
+            "example": "npm install"
+          },
+          "keepOpen": {
+            "type": "boolean",
+            "description": "Flag to indicate whether the terminal should remain open after the command completes. Can be usefull for instance for servers.",
+            "example": true
+          }
+        },
+        "required": ["directory", "command"]
+      },
+      "Response": {
+        "type": "object",
+        "properties": {
+          "terminalOutput": {
+            "type": "string",
+            "description": "The output of the executed command, including errors.",
+            "example": "> npm install\n> Installation completed successfully."
+          }
+        },
+        "required": ["terminalOutput"]
+      }
+    }
+  }
+}
