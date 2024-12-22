@@ -10,7 +10,7 @@
       "post": {
         "summary": "Run a terminal command",
         "description": "Executes a terminal command in the specified directory and returns the output. If the command expects user input you must use flags like --typescript or -t to prevent the command from waiting for input.",
-        "operationId": "processRequest",
+        "operationId": "runCommand",
         "requestBody": {
           "required": true,
           "content": {
