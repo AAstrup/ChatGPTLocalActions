@@ -5,7 +5,7 @@
     "version": "1.0.0"
   },
   "paths": {
-    "/readfiles": {
+    "/read-files": {
       "post": {
         "summary": "Processes a request to list directory contents and/or read file contents.",
         "operationId": "readFiles",
@@ -16,20 +16,17 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "DirectoryPathForListingFiles": {
+                  "DirectoryPathForListingFiles": { 
                     "type": "string",
                     "nullable": true
                   },
-                  "DirectoryListingMode": {
-                    "type": "string",
-                    "enum": ["TopDirectoryOnly", "AllDirectories"],
-                    "default": "TopDirectoryOnly"
+                  "ListingFilesIncludesSubDirectories": {
+                    "type": "boolean",
+                    "default": false
                   },
                   "FilePathsForContent": {
                     "type": "array",
-                    "items": {
-                      "type": "string"
-                    },
+                    "items": { "type": "string" },
                     "nullable": true
                   }
                 }

@@ -8,10 +8,9 @@ namespace ReadFiles.Logic
         {
             var result = new Response();
 
-            // List files and folders
             if (!string.IsNullOrWhiteSpace(request.DirectoryPathForListingFiles))
             {
-                var searchOption = request.DirectoryListingMode == DirectoryListingMode.AllDirectories
+                var searchOption = request.ListingFilesIncludesSubDirectories
                     ? SearchOption.AllDirectories
                     : SearchOption.TopDirectoryOnly;
 
@@ -20,7 +19,6 @@ namespace ReadFiles.Logic
 
                 var listedPaths = new List<PathItem>();
 
-                // Add directories
                 foreach (var dir in directories)
                 {
                     listedPaths.Add(new PathItem
@@ -31,7 +29,6 @@ namespace ReadFiles.Logic
                     });
                 }
 
-                // Add files
                 foreach (var file in files)
                 {
                     listedPaths.Add(new PathItem
@@ -45,7 +42,6 @@ namespace ReadFiles.Logic
                 result.ListedPaths = listedPaths;
             }
 
-            // Return file contents
             if (request.FilePathsForContent?.Any() == true)
             {
                 result.FileContents = new Dictionary<string, string>();
