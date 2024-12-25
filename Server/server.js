@@ -182,7 +182,7 @@ async function readResponseAndErrors(responsesDir, errorsDir, res) {
     res.send(combinedData);
   } catch (err) {
     console.error('Error reading response or error files:', err);
-    res.status(500).send('Internal Server Error');
+    res.status(500).send('Internal Server Error, reason: ' + err);
   }
 }
 

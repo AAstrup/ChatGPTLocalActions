@@ -59,7 +59,7 @@
           },
           "keepOpen": {
             "type": "boolean",
-            "description": "Flag to indicate whether the terminal should remain open after the command completes. Can be usefull for instance for servers.",
+            "description": "Must be true if the terminal must remain alive more than 15 seconds. Must be set for servers for instance.",
             "example": true
           }
         },
