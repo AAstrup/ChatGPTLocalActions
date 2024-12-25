@@ -54,17 +54,12 @@ namespace RunCommand.Logic
 
             if(request.KeepOpen)
             {
-                // Wait briefly for any final output/errors
                 await Task.Delay(2000);
                 capturedOutput.AppendLine("The command continous to run as asked");
             }
             else
             {
-                if(process.WaitForExit(15000))
-                {
-                    process.Kill();
-                    capturedOutput.AppendLine("The command has exceeded 15 seconds to run and has been terminated");
-                }
+                process.WaitForExit();
             }
 
             Console.WriteLine("COMMAND COMPLETE:\n" + capturedOutput.ToString());

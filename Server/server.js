@@ -120,7 +120,10 @@ async function handleRequest(req, res, appPath) {
       } catch {
         break; // File deleted
       }
-      if (Date.now() - startTime > 10000) throw new Error('Timeout waiting for file deletion');
+      if (Date.now() - startTime > 60000){
+        console.error('Timeout waiting for file deletion');
+        throw new Error('Timeout waiting for file deletion');
+      } 
       await new Promise((resolve) => setTimeout(resolve, 500)); // Wait 500ms
     }
 
