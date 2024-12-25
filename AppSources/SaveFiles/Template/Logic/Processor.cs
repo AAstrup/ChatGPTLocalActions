@@ -1,12 +1,13 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Template.Logic
 {
     public static class Processor
     {
-        public static Response ProcessRequest(Request request)
+        public static Task<Response> ProcessRequest(Request request)
         {
             var response = new Response
             {
@@ -23,7 +24,7 @@ namespace Template.Logic
                     {
                         response.Success = false;
                         response.Message = "Invalid file data";
-                        return response;
+                        return Task.FromResult(response);
                     }
 
                     // Ensure the directory exists
@@ -44,7 +45,7 @@ namespace Template.Logic
                 response.Message = $"Error saving files: {ex.Message}";
             }
 
-            return response;
+            return Task.FromResult(response);
         }
     }
 }

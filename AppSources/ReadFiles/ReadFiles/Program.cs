@@ -38,15 +38,16 @@ namespace ReadFiles
                     string responseContent = JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true });
                     string responseFileName = Path.Combine(responsePath, $"response_{Path.GetFileName(file)}");
                     File.WriteAllText(responseFileName, responseContent);
-
-                    // Remove processed file
-                    File.Delete(file);
                 }
                 catch (Exception ex)
                 {
                     // Write error
                     string errorFileName = Path.Combine(errorPath, $"error_{Path.GetFileName(file)}");
                     File.WriteAllText(errorFileName, ex.Message);
+                }
+                finally
+                {
+                    File.Delete(file);
                 }
             }
         }

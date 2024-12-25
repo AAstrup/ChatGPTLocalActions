@@ -38,9 +38,6 @@ namespace RunCommand
                     string responseContent = JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true });
                     string responseFileName = Path.Combine(responsePath, $"response_{Path.GetFileName(file)}");
                     File.WriteAllText(responseFileName, responseContent);
-
-                    // Remove processed file
-                    File.Delete(file);
                 }
                 catch (Exception ex)
                 {
@@ -48,6 +45,10 @@ namespace RunCommand
                     string errorFileName = Path.Combine(errorPath, $"error_{Path.GetFileName(file)}");
                     File.WriteAllText(errorFileName, ex.Message);
                     Console.WriteLine("ERROR OCCURED");
+                }
+                finally
+                {
+                    File.Delete(file);
                 }
             }
         }
